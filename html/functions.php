@@ -63,7 +63,18 @@ function getTweets()
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-/* 返信課題はここからのコードを修正しましょう。 */
+/* いいねを押すことでdbのfavoriteテーブルにデータが入るような関数をつくる。 */
+function createFavorite($member_id, $post_id)
+{
+    $sql = 'insert into favorites (member_id, post_id, created_at, updated_at)';
+    $sql .= ' values (:member_id, :post_id, :created_at, :updated_at)';
+    $now = date("Y-m-d H:i:s");
+    $stmt = getPdo()->prepare($sql);
+    $stmt->bindValue(':member_id', $member_id, PDO::PARAM_INT);
+    $stmt->bindValue(':post_id', $post_id, PDO::PARAM_INT);
+    $stmt->bindValue(':created_at', $now, PDO::PARAM_STR);
+    $stmt->bindValue(':updated_at', $now, PDO::PARAM_STR);
+    return $stmt->execute();
+}
 
-
-/* 返信課題はここからのコードを修正しましょう。 */
+/* いいねを取り消すことでdbからもデータが削除されるような関数。 */
