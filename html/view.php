@@ -3,7 +3,6 @@ require_once('db.php');
 require_once('functions.php');
 
 /* 返信課題はここからのコードを修正しましょう。 */
-require_once('db.php');
 $t = getTweet($_GET['id']);
 /* 返信課題はここまでのコードを修正しましょう。 */
 ?>
