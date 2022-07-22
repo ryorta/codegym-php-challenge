@@ -15,17 +15,35 @@ require_once('functions.php');
  * @param String $tweet_textarea
  * つぶやき投稿を行う。
  */
+ 
+ if ($_POST) { /* POST Requests */
+     if (isset($_POST['logout'])) { //ログアウト処理
+         logout();
+         header("Location: login.php");
+     } elseif (isset($_POST['tweet_textarea'])) { //投稿処理
+         if (isset($_POST['reply_id'])) {
+             newReplyTweet($_POST['tweet_textarea'], $_POST['reply_id']);
+         } else {
+             newtweet($_POST['tweet_textarea']);
+         }
+         header("Location: index.php");
+     }
+ }
+
 function newtweet($tweet_textarea)
 {
     // 汎用ログインチェック処理をルータに作る。早期リターンで
     createTweet($tweet_textarea, $_SESSION['user_id']);
 }
 
-//いいねを取り消すことでdbのfavoriteテーブルからデータを削除する関数を呼び出す。
+function newReplyTweet($tweet_textarea, $reply_id)
+{
+    createReplyTweet($tweet_textarea, $_SESSION['user_id'], $reply_id);
+}
 
 /**
  * ログアウト処理を行う。
- */
+*/
 function logout()
 {
     $_SESSION = [];
@@ -41,6 +59,30 @@ if ($_POST) { /* POST Requests */
         header("Location: index.php");
     }
 }
+    
+ $isReply = false;
+if (isset($_GET['reply'])) {
+    $isReply = true;
+}
+
+//Tweetsテーブルをもとに、Userテーブルを紐づけ、ユーザー名を取得する。
+function getUserName($post_id)
+{
+    $sql = 'select u.name';
+    $sql .=' from tweets t join users u on t.user_id = u.id';
+    $sql .=' where t.id = :post_id';
+    $stmt = getPdo()->prepare($sql);
+    $stmt->bindParam(':post_id', $post_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $name = $stmt->fetch(PDO::FETCH_COLUMN);
+    return $name;
+}
+
+function getUserReplyText($post_id)
+{
+    return "Re: @" . getUserName($post_id) . ' ';
+}
+
 
 /*GETの判定*/
 if ($_GET) {
@@ -80,8 +122,16 @@ $tweet_count = count($tweets);
     <div class="card mb-3">
       <div class="card-body">
         <form method="POST">
-          <textarea class="form-control" type=textarea name="tweet_textarea" ?></textarea>
+          
           <!-- 返信課題はここからのコードを修正しましょう。 -->
+          <?php if ($isReply === true) { //Q：なんで===じゃないとうまくいかなかったのか？　?>
+          <textarea class="form-control" type=textarea name="tweet_textarea" ?><?= getUserReplyText($_GET['reply']) ?></textarea>
+          <input type="hidden" name="reply_id" value="<?= $_GET['reply'] ?>" />
+           <?php
+} else { //返信フラグが立っていない場合、テキストエリア＝空白、隠し項目なし?>
+          <textarea class="form-control" type=textarea name="tweet_textarea" ?></textarea>
+          <?php
+} ?>
           <!-- 返信課題はここからのコードを修正しましょう。 -->
           <br>
           <input class="btn btn-primary" type=submit value="投稿">
@@ -111,13 +161,18 @@ $tweet_count = count($tweets);
     
           <!--また、「post_id」にデータが入っているもの、つまり誰かしらによっていいねが押されている状態のものに関しては、ハートの横にいいね数(count($post_id=○○))を表示する。-->
           <!--返信課題はここから修正しましょう。-->
-          <!--<p>[返信する] [返信元のメッセージ]</p>-->
+          <p><a href = "index.php?reply=<?= "{$t['id']}" ?>">[返信する]</a>
+          <span> <?php  if (isset($t['reply_id'])) {
+        ?>
+          <a href="./view.php?id=<?= "{$t['reply_id']}" ?>">[返信元のメッセージ]</a></span>
+          </p>
+          <?php
+    } ?> 
           <!--返信課題はここまで修正しましょう。-->
         </div>
       </div>
     <?php
-}
-     ?><!--foreach ($tweets as $t)の終点-->
+} ?>
     <form method="POST">
       <input type="hidden" name="logout" value="dummy">
       <button class="btn btn-primary">ログアウト</button>
