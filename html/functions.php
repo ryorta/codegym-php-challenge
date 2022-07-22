@@ -104,11 +104,7 @@ function isMyfavorite($member_id, $post_id)
     $stmt->bindValue(':post_id', $post_id, PDO::PARAM_INT);
     $stmt->execute();
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $fabList = array();
-    foreach ($data as $d) {
-        $fabList = $d;
-    }
-    return $fabList;
+    return (0 < count($data));
 }
 
 function countFavorites($post_id)
