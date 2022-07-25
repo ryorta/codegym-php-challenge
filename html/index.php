@@ -2,6 +2,7 @@
 
 session_start();
 
+//ログインしていない場合、login.phpを表示
 if (empty($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
@@ -10,11 +11,11 @@ if (empty($_SESSION['user_id'])) {
 require_once('db.php');
 require_once('functions.php');
 
- if ($_POST) {
-     if (isset($_POST['logout'])) {
+ if ($_POST) { /* POST Requests */
+     if (isset($_POST['logout'])) { //ログアウト処理
          logout();
          header("Location: login.php");
-     } elseif (isset($_POST['tweet_textarea'])) {
+     } elseif (isset($_POST['tweet_textarea'])) { //投稿処理
          if (isset($_POST['reply_id'])) {
              newReplyTweet($_POST['tweet_textarea'], $_POST['reply_id']);
          } else {
@@ -24,9 +25,14 @@ require_once('functions.php');
          exit;
      }
  }
-
+ 
+/**
+ * @param String $tweet_textarea
+ * つぶやき投稿を行う。
+ */
 function newtweet($tweet_textarea)
 {
+    // 汎用ログインチェック処理をルータに作る。早期リターンで
     createTweet($tweet_textarea, $_SESSION['user_id']);
 }
 
@@ -34,6 +40,10 @@ function newReplyTweet($tweet_textarea, $reply_id)
 {
     createReplyTweet($tweet_textarea, $_SESSION['user_id'], $reply_id);
 }
+
+/**
+ * ログアウト処理を行う。
+ */
 
 function logout()
 {

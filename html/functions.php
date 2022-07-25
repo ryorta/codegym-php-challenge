@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @param string $name ユーザー名
+ * @return PDOStatement ユーザー情報の連想配列を格納したPDOStatement
+ * 名前を元にユーザー情報を取得します。
+ */
 function getUserByName($name)
 {
     $sql = 'select * from users where name = :name';
@@ -9,6 +13,11 @@ function getUserByName($name)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+/**
+ * @param string $name ユーザー名
+ * @param string $$password_hash ユーザーパスワードハッシュ値
+ * @return bool 成功・失敗
+ */
 function createUser($name, $password_hash)
 {
     $sql = 'insert into users (name, password_hash, created_at, updated_at)';
@@ -22,6 +31,11 @@ function createUser($name, $password_hash)
     return $stmt->execute();
 }
 
+/**
+ * @param string $text 投稿内容
+ * @param string $user_id ユーザーID
+ * @return bool 成功・失敗
+ */
 function createTweet($text, $user_id)
 {
     $sql = 'insert into tweets (text, user_id, created_at, updated_at)';
@@ -35,6 +49,10 @@ function createTweet($text, $user_id)
     return $stmt->execute();
 }
 
+/**
+ * @return PDOStatement ユーザー情報の連想配列を格納したPDOStatement
+ * 投稿の一覧を取得します。
+ */
 function getTweets()
 {
     $sql = 'select t.id, t.text, t.user_id, t.created_at, t.updated_at, t.reply_id, u.name';
@@ -93,6 +111,10 @@ function deleteFavorite($member_id, $post_id)
     return $stmt->execute();
 }
 
+/**
+ * @param string $user_id ユーザー名
+ * @return array 自分がいいねした投稿IDの配列
+ */
 function isMyfavorite($member_id, $post_id)
 {
     $sql = 'select post_id';
