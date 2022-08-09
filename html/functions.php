@@ -63,10 +63,9 @@ function getTweets()
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-/* 返信課題はここからのコードを修正しましょう。 */
 function getTweet($id)
 {
-    $sql = 'select t.id, t.text, t.user_id, t.created_at, t.updated_at, t.reply_id, u.name'; 
+    $sql = 'select t.id, t.text, t.user_id, t.created_at, t.updated_at, t.reply_id, u.name';
     $sql .=' from tweets t join users u on t.user_id = u.id';
     $sql .=' where t.id = :id';
     $stmt = getPdo()->prepare($sql);
@@ -75,7 +74,6 @@ function getTweet($id)
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-/* 返信課題はここからのコードを修正しましょう。 */
 function createReplyTweet($text, $user_id, $reply_id)
 {
     $sql = 'insert into tweets (text, user_id, created_at, updated_at, reply_id)';
@@ -88,4 +86,57 @@ function createReplyTweet($text, $user_id, $reply_id)
     $stmt->bindValue(':updated_at', $now, PDO::PARAM_STR);
     $stmt->bindValue(':reply_id', $reply_id, PDO::PARAM_INT);
     return $stmt->execute();
+}
+
+function createFavorite($member_id, $post_id)
+{
+    $sql = 'insert into favorites (member_id, post_id, created_at, updated_at)';
+    $sql .= ' values (:member_id, :post_id, :created_at, :updated_at)';
+    $now = date("Y-m-d H:i:s");
+    $stmt = getPdo()->prepare($sql);
+    $stmt->bindValue(':member_id', $member_id, PDO::PARAM_STR);
+    $stmt->bindValue(':post_id', $post_id, PDO::PARAM_INT);
+    $stmt->bindValue(':created_at', $now, PDO::PARAM_STR);
+    $stmt->bindValue(':updated_at', $now, PDO::PARAM_STR);
+    return $stmt->execute();
+}
+
+function deleteFavorite($member_id, $post_id)
+{
+    $sql = 'delete from favorites';
+    $sql .= ' where member_id = :member_id and post_id = :post_id';
+    $stmt = getPdo()->prepare($sql);
+    $stmt->bindValue(':member_id', $member_id, PDO::PARAM_INT);
+    $stmt->bindValue(':post_id', $post_id, PDO::PARAM_INT);
+    return $stmt->execute();
+}
+
+/**
+ * @param string $user_id ユーザー名
+ * @return array 自分がいいねした投稿IDの配列
+ */
+function isMyfavorite($member_id, $post_id)
+{
+    $sql = 'select post_id';
+    $sql .= ' from favorites';
+    $sql .= ' where member_id = :member_id and post_id = :post_id';
+    $sql .= ' order by updated_at desc';
+    $stmt = getPdo()->prepare($sql);
+    $stmt->bindValue(':member_id', $member_id, PDO::PARAM_INT);
+    $stmt->bindValue(':post_id', $post_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return (0 < count($data));
+}
+
+function countFavorites($post_id)
+{
+    $sql = 'select post_id';
+    $sql .= ' from favorites';
+    $sql .= ' where post_id = :post_id';
+    $stmt = getPdo()->prepare($sql);
+    $stmt->bindValue(':post_id', $post_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $fav = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return count($fav);
 }
